@@ -1,0 +1,56 @@
+version: '3.9'
+
+services:
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: govpay-postgres
+    environment:
+      POSTGRES_DB: govpay
+      POSTGRES_USER: govpay
+      POSTGRES_PASSWORD: govpay
+    ports:
+      - "5432:5432"
+    volumes:
+      - govpay_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U govpay -d govpay"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: govpay-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - govpay_redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: govpay-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    ports:
+      - "5672:5672"
+      - "15672:15672"   # management UI at http://localhost:15672
+    volumes:
+      - govpay_rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+
+volumes:
+  govpay_postgres_data:
+  govpay_redis_data:
+  govpay_rabbitmq_data:
