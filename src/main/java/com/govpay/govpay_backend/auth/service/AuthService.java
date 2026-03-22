@@ -8,8 +8,7 @@ import com.govpay.govpay_backend.auth.repository.RefreshTokenRepository;
 import com.govpay.govpay_backend.auth.repository.UserRepository;
 import com.govpay.govpay_backend.auth.security.JwtService;
 import com.govpay.govpay_backend.common.exception.GovPayException;
-import com.govpay.govpay_backend.notification.dto.NotificationEvents.UserRegisteredEvent;
-import com.govpay.govpay_backend.notification.publisher.EventPublisher;
+import com.govpay.govpay_backend.notification.client.NotificationClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -37,7 +36,7 @@ public class AuthService {
     private final JwtProperties jwtProperties;
     private final AuthenticationManager authenticationManager;
     private final UserDetailsService userDetailsService;
-    private final EventPublisher eventPublisher;
+    private final NotificationClient notificationClient;
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
@@ -59,10 +58,7 @@ public class AuthService {
         user = userRepository.save(user);
         log.info("New user registered: {}", user.getEmail());
 
-        // Publish event for notification service to pick up
-        eventPublisher.publishUserRegistered(new UserRegisteredEvent(
-                user.getId(), user.getEmail(), user.getFirstName(), user.getLastName()
-        ));
+        notificationClient.sendWelcomeEmail(user.getEmail(), user.getFirstName());
 
         return buildAuthResponse(user);
     }
