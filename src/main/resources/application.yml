@@ -5,7 +5,7 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/govpay
     username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:REDACTED-PASSWORD}
+    password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 10
